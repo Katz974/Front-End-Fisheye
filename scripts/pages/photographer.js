@@ -2,47 +2,100 @@
 //link photographers and media from .json
 //compute total likes
 //add 2 keys each photographer
+
 async function fetchPhotographers() {
   const resp = await fetch('/data/photographers.json')
   const photographersData = await resp.json()
-  const photographers = []
+  console.log(photographersData)
+  return photographersData
+}
+
+function computePhotographers(photographersData) {
+  const newPhotographers = []
 
   for (const photographer of photographersData.photographers) {
     const mediasTargeted = photographersData.media.filter(
       media => media.photographerID === photographer.id
     )
 
+    const mediasTransformed = mediasTargeted.map(media => {
+      return { ...media, userHasLiked: false }
+    })
+
     //compute total likes
     let likes = 0
-    for (const media of mediasTargeted) {
+    for (const media of mediasTransformed) {
       likes += media.likes
     }
 
     //add 2 keys each photographer
-    photographers.push({
+    newPhotographers.push({
       ...photographer,
       likes: likes,
-      userHasLiked: false,
-      medias: mediasTargeted,
+      medias: mediasTransformed,
     })
   }
 
-  console.log(photographers)
-  console.log(photographersData.photographers)
-
-  return photographers
+  console.log(newPhotographers)
+  return newPhotographers
 }
 
-fetchPhotographers()
+function insertPhotographersIntoLocalStorage(photographers) {
+  photographers.forEach(photographer => {
+    localStorage.setItem(photographer.id, JSON.stringify(photographer))
+  })
+}
 
-//store each photographer by id with the values in the local storage
-async function getPhotographers() {
-  if (localStorage.length === 0) {
-    let photographers = await fetchPhotographers()
-    photographers.forEach(element => {
-      localStorage.setItem(element.id, JSON.stringify(element))
-    })
+function isLocalStorageIsValid(newPhotographers) {
+  const storageLength = localStorage.length
+  //console.log(storageLength)
+  const photographerLocalStorageKeys = []
+
+  const photographersKeys = newPhotographers.map(photographer => {
+    return photographer.id.toString()
+  })
+
+  for (let i = 0; i < storageLength; i++) {
+    const keyPhotographer = localStorage.key(i)
+    photographerLocalStorageKeys.push(keyPhotographer)
+  }
+  console.log('photographerLocalStorageKeys', photographerLocalStorageKeys)
+  console.log('photographersKeys', photographersKeys)
+
+  if (photographerLocalStorageKeys.length !== photographersKeys.length)
+    return false
+
+  for (const localStorageKey of photographerLocalStorageKeys) {
+    if (!photographersKeys.includes(localStorageKey)) {
+      return false
+    } else {
+      return true
+    }
   }
 }
 
-getPhotographers()
+function insertAllPhotographersIntoLocalStorage(photographersComputed) {
+  for (const photographer of photographersComputed) {
+    if (!localStorage.getItem(photographer.id)) {
+      insertPhotographersIntoLocalStorage([photographer])
+    }
+  }
+}
+
+async function initPhotographers() {
+  const photographersJSON = await fetchPhotographers()
+  const photographersComputed = computePhotographers(photographersJSON)
+  console.log('comment', localStorage)
+
+  // vérifier s'il faut rajouter n nouveau photographe (si l'id n'est pas présent dans le local sotrage)
+  // insére
+  insertAllPhotographersIntoLocalStorage(photographersComputed)
+
+  const isValid = isLocalStorageIsValid(photographersComputed)
+
+  if (!isValid) {
+    console.error('local storage error')
+  }
+}
+
+initPhotographers()
