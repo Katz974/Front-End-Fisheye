@@ -1,101 +1,54 @@
-//create array of objects
-//link photographers and media from .json
-//compute total likes
-//add 2 keys each photographer
+/**
+ * Retrieve photographer ID from URL query parameter `id`
+ * @returns {number}
+ */
+function getPhotographerId() {
+  const getLocation = document.location.search
+  const getParams = new URLSearchParams(getLocation)
+  const photographerId = parseInt(getParams.get('id'))
+  console.log(photographerId)
 
-async function fetchPhotographers() {
-  const resp = await fetch('/data/photographers.json')
-  const photographersData = await resp.json()
-  console.log(photographersData)
-  return photographersData
+  return photographerId
 }
 
-function computePhotographers(photographersData) {
-  const newPhotographers = []
+/**
+ * Render the current page
+ */
+async function render() {
+  const photographerId = getPhotographerId()
+  const photographerData = await getPhotographer(photographerId)
 
-  for (const photographer of photographersData.photographers) {
-    const mediasTargeted = photographersData.media.filter(
-      media => media.photographerID === photographer.id
+  if (!photographerData) {
+    console.error(
+      `Error: photographer with ID ${photographerId} not found... aborting`
     )
-
-    const mediasTransformed = mediasTargeted.map(media => {
-      return { ...media, userHasLiked: false }
-    })
-
-    //compute total likes
-    let likes = 0
-    for (const media of mediasTransformed) {
-      likes += media.likes
-    }
-
-    //add 2 keys each photographer
-    newPhotographers.push({
-      ...photographer,
-      likes: likes,
-      medias: mediasTransformed,
-    })
+    // document.querySelector('.error').appendChild(...)
+    return
   }
 
-  console.log(newPhotographers)
-  return newPhotographers
+  const photographer = photographerFactory(photographerData)
+
+  // Render photographer header
+  const photographerHeader = photographer.renderPageHeader(displayModal)
+  document.querySelector('.photograph-header').appendChild(photographerHeader)
+
+  // Render photos grid
+  const photosGrid = photographer.renderPhotosGrid()
+  document.querySelector('.photographer-pictures').appendChild(photosGrid)
+
+  // Render contact modal (hidden at first)
+  photographer.getContactModal()
+
+  // Setup displayModal on contact form's button click
+  const button = document.querySelector('.contact_button')
+  button.addEventListener('click', displayModal)
 }
 
-function insertPhotographersIntoLocalStorage(photographers) {
-  photographers.forEach(photographer => {
-    localStorage.setItem(photographer.id, JSON.stringify(photographer))
-  })
+/**
+ * Main entrypoint of the current page
+ */
+async function main() {
+  await render()
 }
 
-function isLocalStorageIsValid(newPhotographers) {
-  const storageLength = localStorage.length
-  //console.log(storageLength)
-  const photographerLocalStorageKeys = []
-
-  const photographersKeys = newPhotographers.map(photographer => {
-    return photographer.id.toString()
-  })
-
-  for (let i = 0; i < storageLength; i++) {
-    const keyPhotographer = localStorage.key(i)
-    photographerLocalStorageKeys.push(keyPhotographer)
-  }
-  console.log('photographerLocalStorageKeys', photographerLocalStorageKeys)
-  console.log('photographersKeys', photographersKeys)
-
-  if (photographerLocalStorageKeys.length !== photographersKeys.length)
-    return false
-
-  for (const localStorageKey of photographerLocalStorageKeys) {
-    if (!photographersKeys.includes(localStorageKey)) {
-      return false
-    } else {
-      return true
-    }
-  }
-}
-
-function insertAllPhotographersIntoLocalStorage(photographersComputed) {
-  for (const photographer of photographersComputed) {
-    if (!localStorage.getItem(photographer.id)) {
-      insertPhotographersIntoLocalStorage([photographer])
-    }
-  }
-}
-
-async function initPhotographers() {
-  const photographersJSON = await fetchPhotographers()
-  const photographersComputed = computePhotographers(photographersJSON)
-  console.log('comment', localStorage)
-
-  // vérifier s'il faut rajouter n nouveau photographe (si l'id n'est pas présent dans le local sotrage)
-  // insére
-  insertAllPhotographersIntoLocalStorage(photographersComputed)
-
-  const isValid = isLocalStorageIsValid(photographersComputed)
-
-  if (!isValid) {
-    console.error('local storage error')
-  }
-}
-
-initPhotographers()
+main()
