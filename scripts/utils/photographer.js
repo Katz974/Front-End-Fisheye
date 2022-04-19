@@ -3,7 +3,19 @@
 //compute total likes
 //add 2 keys each photographer
 
+/** @return {Promise<import('../../data/photographers').Data | import('../../data/photographers').Photographer[]>} */
 async function fetchPhotographers() {
+  // Load photographers from localStorage if possible
+  if (localStorage.length > 0) {
+    const photographers = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      const photographer = JSON.parse(localStorage.getItem(key))
+      photographers.push(photographer)
+    }
+    console.table(photographers)
+    return photographers
+  }
   const resp = await fetch('/data/photographers.json')
   /** @type {import('../../data/photographers').Data} */
   const photographersData = await resp.json()
@@ -86,10 +98,15 @@ function insertAllPhotographersIntoLocalStorage(photographersComputed) {
 
 async function getPhotographers() {
   const photographersJSON = await fetchPhotographers()
-  const photographersComputed = computePhotographers(photographersJSON)
+  let photographersComputed
+  if ('photographers' in photographersJSON) {
+    photographersComputed = computePhotographers(photographersJSON)
+  } else {
+    photographersComputed = photographersJSON
+  }
   console.log('comment', localStorage)
 
-  // vérifier s'il faut rajouter n nouveau photographe (si l'id n'est pas présent dans le local storage)
+  // vérifier s'il faut rajouter un nouveau photographe (si l'id n'est pas présent dans le local storage)
   // insére
   insertAllPhotographersIntoLocalStorage(photographersComputed)
 
@@ -113,3 +130,7 @@ async function getPhotographer(id) {
 
   return undefined
 }
+
+// check userHasLiked in Storage
+
+function checkTheLike() {}

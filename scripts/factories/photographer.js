@@ -1,17 +1,46 @@
 async function fetchPhotographers() {
   const resp = await fetch('/data/photographers.json')
   const photographersData = await resp.json()
-  console.log(photographersData)
+  // console.log(photographersData)
   return photographersData
 }
 
 /**
- *
- */
+//  * @param {import('../../data/photographers').Photographer} data
+  */
+
 function photographerFactory(data) {
-  const { name, portrait, country, city, tagline, price, id } = data
+  const { name, portrait, city, tagline, price, id } = data
+
+  const likes = data.medias.reduce((acc, media) => {
+    console.log(media)
+    acc += media.likes
+    return acc
+  }, 0)
 
   const picture = `Sample Photos/Photographers ID Photos/${portrait}`
+
+  const stickBox = document.createElement('div')
+  stickBox.classList.add('stickBox')
+  const photographerMain = document.getElementById('photographer-main')
+  photographerMain?.appendChild(stickBox)
+
+  const photographerLikesInStickBox = document.createElement('label')
+  photographerLikesInStickBox.classList.add('photographerLikesInStickBox')
+  stickBox.appendChild(photographerLikesInStickBox)
+
+  photographerLikesInStickBox.innerHTML = likes + '   '
+
+  const heartInStickyBox = document.createElement('div')
+  heartInStickyBox.classList.add('heartInStickyBox')
+  heartInStickyBox.classList.add('fa-heart')
+  heartInStickyBox.classList.add('fa-solid')
+  photographerLikesInStickBox.appendChild(heartInStickyBox)
+
+  const dayPrice = document.createElement('label')
+  dayPrice.classList.add('dayPrice')
+  stickBox.appendChild(dayPrice)
+  dayPrice.innerHTML = data.price + '€ / jour'
 
   /**
    * Render photos grid
@@ -21,6 +50,9 @@ function photographerFactory(data) {
 
     data.medias.forEach(media => {
       const mediaURL = media?.image && `/Sample Photos/${name}/${media.image}`
+
+      // console.log(media.userHasLiked)
+
       if (!mediaURL) {
         return
       }
@@ -35,10 +67,89 @@ function photographerFactory(data) {
 
       const divContainer = document.createElement('div')
       article.appendChild(divContainer)
+      divContainer.classList.add('picLegend')
 
       const label = document.createElement('label')
       label.textContent = media.title
       divContainer.appendChild(label)
+
+      const numberOfLikes = document.createElement('div')
+      numberOfLikes.classList.add('numberOfLikes')
+      numberOfLikes.innerHTML = media.likes
+      divContainer.appendChild(numberOfLikes)
+
+      function countClicksOnHeart() {
+        // Retrieve the photographer owning the current media
+        const photographer = JSON.parse(
+          localStorage.getItem(media.photographerId)
+        )
+
+        // Update the media
+        let userHasLiked = false
+        for (let i = 0; i < photographer.medias.length; i++) {
+          if (photographer.medias[i].id === media.id) {
+            userHasLiked = !photographer.medias[i].userHasLiked
+            photographer.medias[i].userHasLiked = userHasLiked
+            photographer.medias[i].likes += userHasLiked ? 1 : -1
+            numberOfLikes.innerHTML = photographer.medias[i].likes
+
+            break
+          }
+        }
+
+        // Save back the photographer
+        localStorage.setItem(media.photographerId, JSON.stringify(photographer))
+
+        // console.log(media)
+        // console.log(photographer)
+
+        // Update UI
+        if (userHasLiked) {
+          heartI.classList.add('fa-solid')
+          heartI.classList.remove('fa-regular')
+        } else {
+          heartI.classList.add('fa-regular')
+          heartI.classList.remove('fa-solid')
+        }
+      }
+
+      const heartBut = document.createElement('button')
+      const heartButId = media.id
+      heartBut.type = 'button'
+      heartBut.classList.add('heartBut')
+      heartBut.addEventListener('click', countClicksOnHeart)
+
+      heartBut.id = heartButId
+
+      divContainer.appendChild(heartBut)
+
+      // document
+      //   .getElementById(heartButId)
+      //   .addEventListener('click', countClicksOnHeart)
+
+      // const heartId = document.getElementById(media.id)
+      // heartId.addEventListener('click', countClicksOnHeart)
+      // heartBut.onclick = function () {
+      //   media.userHasLiked = true
+      //   media.likes += 1
+      // }
+
+      // heartBut.addEventListener('click', countClicksOnHeart)
+      // heartBut.onclick = countClicksOnHeart
+
+      const heartI = document.createElement('i')
+
+      heartI.classList.add('fa-heart')
+      // console.table(media)
+      if (media.userHasLiked) {
+        heartI.classList.add('fa-solid')
+        heartI.classList.remove('fa-regular')
+      } else {
+        heartI.classList.add('fa-regular')
+        heartI.classList.remove('fa-solid')
+      }
+
+      heartBut.appendChild(heartI)
     })
 
     return div
@@ -85,7 +196,7 @@ function photographerFactory(data) {
 
   function renderPageHeader(displayModal) {
     const { name, portrait, city, country, tagline } = data
-    console.log(data)
+    // console.log(data)
     const picture = `/Sample Photos/Photographers ID Photos/${portrait}`
 
     const article = document.createElement('article')
@@ -127,10 +238,6 @@ function photographerFactory(data) {
 
     divPicPhoto.appendChild(img)
 
-    // divPicPhoto.addEventListener('click', function () {
-    //   document.getElementById('divPicPhoto').innerHTML = 'Hello World'
-    // })
-
     return article
   }
 
@@ -140,7 +247,7 @@ function photographerFactory(data) {
     const { name } = data
     const contactPhotographer = document.querySelector('.contactName')
     contactPhotographer.textContent = name
-    console.log(contactPhotographer)
+    // console.log(contactPhotographer)
     return contactPhotographer
   }
 
@@ -150,9 +257,11 @@ function photographerFactory(data) {
     city,
     tagline,
     price,
+    likes,
     getUserCardDOM,
     renderPageHeader,
     renderPhotosGrid,
     getContactModal,
+    // countAllLikes,
   }
 }

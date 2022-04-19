@@ -117,8 +117,56 @@ form > div.message > input {
   justify-content: space-around;
 }
 
+.picBox {
+  width: 30%;
+}
+
 .picBox > img {
   width: 350px;
-  height: 350px;
+  height: 300px;
   object-fit: cover;
+  padding-bottom: 5px;
+  border-radius: 8px;
+}
+
+.picLegend {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  width: 338px;
+  color: #901c1c;
+  font-size: 22px;
+  font-weight: 500;
+  padding-bottom: 20px;
+}
+
+.heartBut {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background-color: white;
+}
+
+button {
+  color: #901c1c;
+}
+
+.stickBox {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+
+  position: fixed;
+  bottom: 0;
+  right: 50px;
+  width: 350px;
+  height: 60px;
+
+  border-radius: 5px;
+
+  background-color: #db8876;
+  color: black;
+
+  font-size: 20px;
+  font-weight: 900;
 }
