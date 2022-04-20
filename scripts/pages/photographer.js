@@ -33,7 +33,7 @@ async function render() {
   document.querySelector('.photograph-header').appendChild(photographerHeader)
 
   // Render photos grid
-  const photosGrid = photographer.renderPhotosGrid()
+  const photosGrid = photographer.renderMediasGrid()
   document.querySelector('.photographer-pictures').appendChild(photosGrid)
 
   // Render contact modal (hidden at first)

@@ -129,6 +129,14 @@ form > div.message > input {
   border-radius: 8px;
 }
 
+.picBox > video {
+  width: 350px;
+  height: 300px;
+  object-fit: cover;
+  padding-bottom: 5px;
+  border-radius: 8px;
+}
+
 .picLegend {
   display: flex;
   flex-flow: row wrap;

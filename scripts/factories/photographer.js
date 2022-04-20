@@ -45,25 +45,39 @@ function photographerFactory(data) {
   /**
    * Render photos grid
    */
-  function renderPhotosGrid() {
+  function renderMediasGrid() {
     const div = document.createElement('div')
 
     data.medias.forEach(media => {
-      const mediaURL = media?.image && `/Sample Photos/${name}/${media.image}`
+      const isImg = !!media.image
+      const isVideo = !!media.video
+      const mediaURL = isImg
+        ? `/Sample Photos/${name}/${media.image}`
+        : `/Sample Photos/${name}/${media.video}`
 
-      // console.log(media.userHasLiked)
+      const encodedMediaURL = encodeURI(mediaURL)
+      console.log(encodedMediaURL)
 
-      if (!mediaURL) {
+      if (!isImg && !isVideo) {
         return
       }
       const article = document.createElement('article')
       // article.textContent = mediaURL
       article.classList.add('picBox')
 
-      const image = document.createElement('img')
-      image.setAttribute('src', mediaURL)
-      article.appendChild(image)
-      div.appendChild(article)
+      if (!isVideo) {
+        const image = document.createElement('img')
+        image.setAttribute('src', encodedMediaURL)
+        article.appendChild(image)
+        div.appendChild(article)
+      }
+
+      if (!isImg) {
+        const video = document.createElement('video')
+        video.setAttribute('src', encodedMediaURL)
+        article.appendChild(video)
+        div.appendChild(article)
+      }
 
       const divContainer = document.createElement('div')
       article.appendChild(divContainer)
@@ -212,7 +226,7 @@ function photographerFactory(data) {
     divIdPhoto.appendChild(h2)
 
     const place = document.createElement('p')
-    place.textContent = city + ', ' + country
+    place.textContent = `${city}, ${country}`
     place.classList.add('city')
     divIdPhoto.appendChild(place)
 
@@ -260,7 +274,7 @@ function photographerFactory(data) {
     likes,
     getUserCardDOM,
     renderPageHeader,
-    renderPhotosGrid,
+    renderMediasGrid,
     getContactModal,
     // countAllLikes,
   }
